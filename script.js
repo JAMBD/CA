@@ -28,6 +28,13 @@ function DoubleBuffer(initial_data){
     }
 }
 
+function FlipDirection(direction){
+    if (direction == CENTER){
+        return CENTER;
+    }
+    return (direction + 2) % 4;
+}
+
 //##### Define the data contained in a cell #####\\
 function Signal(){
     this.direction = new DoubleBuffer(CENTER);
@@ -77,7 +84,7 @@ function Cell(){
     this.signal = new Signal();
     this.block = new Block();
     this.draw = function (context, x, y, size){
-        context.fillStyle = "#306d80";
+        context.fillStyle = "#083d54";
         context.fillRect(x, y, size, size);
         this.block.draw(context, x, y, size);
         this.signal.draw(context, x, y, size);
@@ -126,7 +133,6 @@ function cell_logic(
             dir_cnt += 1;
         }
     }
-    e.signal.strength.set(signal_strength);
     if (dir_cnt == 1) {
         for (i in [NORTH, SOUTH, EAST, WEST]){
             if (has_dir[i]){
@@ -134,6 +140,20 @@ function cell_logic(
             }
         }
     }
+    if (dir_cnt == 2) {
+        e.signal.direction.set(CENTER);
+    }
+    if (dir_cnt == 3) {
+        for (i in [NORTH, SOUTH, EAST, WEST]){
+            if (!has_dir[i]){
+                e.signal.direction.set(FlipDirection(i));
+            }
+        }
+    }
+    if (dir_cnt == 4){
+        signal_strength = 0;
+    }
+    e.signal.strength.set(signal_strength);
 
     // Signal interacting with block logic.
 
@@ -162,6 +182,8 @@ function flip_cells(){
 //##### Setup initial conditions #####\\
 function signal_test_setup(){
     cells[32][32].signal.strength.set(1.0);
+    cells[16][32].signal.strength.set(1.0);
+    cells[24][24].signal.strength.set(1.0);
     flip_cells();
 }
 
