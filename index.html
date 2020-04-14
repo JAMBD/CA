@@ -16,11 +16,26 @@
         </style>
     </head>
     <body style="font-size: 0; background-color: #00546e; margin: 0; border: 0px; height: 100%; touch-action: none;">
-        <div class="flex">
-            <div id="center">
+        <div class="flex-container" style="display: flex; flex-direction: row; justify-content: center;">
+            <div class="flex-element" id="center">
                 <canvas id="game" style="border: 0px; position: static; right: 0; left: 0; margin: 0;">
                     No HTML5 support in this browser.
                 </canvas>
+            </div>
+            <div class="flex-element" id="button_div" style="width:15%;">
+                <div class="flex_element" style="height:5%; display:flex; flex-flow: column nowrap;">
+                    <p align="center" style="margin-top:auto;">
+                        <font size="3" color="#FFFFFF">DRAW</font>
+                    </p>
+                </div>
+                <button type="button" style="width:100%;">Signal</button> 
+                <button type="button" style="width:100%;">Block</button>
+                <div class="flex_element" style="height:5%; display:flex; flex-flow: column nowrap;">
+                    <p align="center" style="margin-top:auto;">
+                        <font size="3" color="#FFFFFF">PRESETS</font>
+                    </p>
+                </div>
+                <button type="button" style="width:100%;">Signal_tester</button>
             </div>
         </div>
 
