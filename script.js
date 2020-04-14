@@ -28,11 +28,27 @@ function DoubleBuffer(initial_data){
     }
 }
 
-function FlipDirection(direction){
+function RotateRight(direction, n_turns){
     if (direction == CENTER){
         return CENTER;
     }
-    return (direction + 2) % 4;
+    return (direction + n_turns) % 4;
+}
+
+function NeighborAt(nbr, idx, direction){
+    // Index into nbr.
+    // 7 0 1
+    // 6 ^ 2
+    // 5 4 3
+    return nbr[(idx + direction * 2) % 8];
+}
+
+function ParameterNeighbors(nbr, param){
+    var p_nbr = [];
+    for (i of nbr){
+        p_nbr.push(i[param]);
+    }
+    return p_nbr;
 }
 
 //##### Define the data contained in a cell #####\\
@@ -60,7 +76,42 @@ function Signal(){
     this.flip = function(){
         this.direction.flip();
         this.strength.flip();
-    }
+    };
+    this.update = function(nbr){
+        // Signal propagation logic.
+        signal_strength = 0.0;
+        var dir_cnt = 0;
+        var has_dir = [false, false, false, false];
+        for (dir of [NORTH, SOUTH, EAST, WEST]){
+            var n = NeighborAt(nbr, 4, dir);
+            if (n.direction.get() == dir ||
+                n.direction.get() == CENTER){
+                if (n.strength.get() > 0){
+                    signal_strength += n.strength.get();
+                    dir_cnt += 1;
+                    has_dir[dir] = true;
+                }
+            }
+        }
+        if (dir_cnt == 1) {
+            for (j in [NORTH, SOUTH, EAST, WEST]){
+                if (has_dir[j]){
+                    this.direction.set(j);
+                }
+            }
+        }
+        if (dir_cnt == 2 || dir_cnt == 4) {
+            signal_strength = 0.0;
+        }
+        if (dir_cnt == 3) {
+            for (j in [NORTH, SOUTH, EAST, WEST]){
+                if (!has_dir[j]){
+                    this.direction.set(RotateRight(j, 2));
+                }
+            }
+        }
+        this.strength.set(signal_strength);
+    };
 }
 
 function Block(){
@@ -72,12 +123,12 @@ function Block(){
             context.fillStyle = "#42402e";
             context.fillRect(x, y, size, size);
         }
-    }
+    };
     this.flip = function(){
         this.present.flip();
         this.conductive.flip();
         this.signal_source.flip();
-    }
+    };
 }
 
 function Cell(){
@@ -88,85 +139,30 @@ function Cell(){
         context.fillRect(x, y, size, size);
         this.block.draw(context, x, y, size);
         this.signal.draw(context, x, y, size);
-    }
+    };
     this.flip = function(){
         this.signal.flip();
         this.block.flip();
-    }
-}
+    };
+    this.update = function(nbr){
+        // Update each paramter.
+        this.signal.update(ParameterNeighbors(nbr, "signal"));
 
-//##### Cellular Automata #####\\
-function cell_logic(
-    a, b, c,
-    d, e, f,
-    g, h, i){
-
-    // Signal propagation logic.
-    signal_strength = 0.0;
-    var has_dir = [false, false, false, false];
-    var dir_cnt = 0;
-    if (b.signal.direction.get() == SOUTH || b.signal.direction.get() == CENTER){
-        if (b.signal.strength.get() > 0){
-            signal_strength += b.signal.strength.get();
-            has_dir[SOUTH] = true;
-            dir_cnt += 1;
+        // Signal interacting with block.
+        if (this.block.present.get() && !this.block.conductive.get()){
+            this.signal.strength.set(0);
         }
-    }
-    if (h.signal.direction.get() == NORTH || h.signal.direction.get() == CENTER){
-        if (h.signal.strength.get() > 0){
-            signal_strength += h.signal.strength.get();
-            has_dir[NORTH] = true;
-            dir_cnt += 1;
-        }
-    }
-    if (d.signal.direction.get() == EAST || d.signal.direction.get() == CENTER){
-        if (d.signal.strength.get() > 0){
-            signal_strength += d.signal.strength.get();
-            has_dir[EAST] = true;
-            dir_cnt += 1;
-        }
-    }
-    if (f.signal.direction.get() == WEST || f.signal.direction.get() == CENTER){
-        if (f.signal.strength.get() > 0){
-            signal_strength += f.signal.strength.get();
-            has_dir[WEST] = true;
-            dir_cnt += 1;
-        }
-    }
-    if (dir_cnt == 1) {
-        for (i in [NORTH, SOUTH, EAST, WEST]){
-            if (has_dir[i]){
-                e.signal.direction.set(i);
-            }
-        }
-    }
-    if (dir_cnt == 2) {
-        e.signal.direction.set(CENTER);
-    }
-    if (dir_cnt == 3) {
-        for (i in [NORTH, SOUTH, EAST, WEST]){
-            if (!has_dir[i]){
-                e.signal.direction.set(FlipDirection(i));
-            }
-        }
-    }
-    if (dir_cnt == 4){
-        signal_strength = 0;
-    }
-    e.signal.strength.set(signal_strength);
-
-    // Signal interacting with block logic.
-
+    };
 }
 
 function update_cells(){
     // no logic yet for edges.
     for (var i = 1; i < BOARD_WIDTH - 1; i++){
         for (var j = 1; j < BOARD_HEIGHT - 1; j++){
-            cell_logic(
-                cells[i-1][j-1], cells[i][j-1], cells[i+1][j-1],
-                cells[i-1][j],   cells[i][j],   cells[i+1][j],
-                cells[i-1][j+1], cells[i][j+1], cells[i+1][j+1]);
+            cells[i][j].update([
+                cells[i][j-1], cells[i+1][j-1], cells[i+1][j],
+                cells[i+1][j+1], cells[i][j+1], cells[i-1][j+1],
+                cells[i-1][j], cells[i-1][j-1]]);
         }
     }
 }
@@ -182,8 +178,23 @@ function flip_cells(){
 //##### Setup initial conditions #####\\
 function signal_test_setup(){
     cells[32][32].signal.strength.set(1.0);
+    cells[32][30].block.present.set(true);
+    cells[31][31].block.present.set(true);
+    cells[32][35].block.present.set(true);
+    cells[33][34].block.present.set(true);
     cells[16][32].signal.strength.set(1.0);
+    cells[16][30].block.present.set(true);
+
+    cells[16][36].block.present.set(true);
+    cells[14][35].block.present.set(true);
+    cells[15][36].block.present.set(true);
+    cells[18][36].block.present.set(true);
+    cells[19][35].block.present.set(true);
+
     cells[24][24].signal.strength.set(1.0);
+    cells[60][30].block.present.set(true);
+    cells[61][31].block.present.set(true);
+    cells[60][32].block.present.set(true);
     flip_cells();
 }
 
