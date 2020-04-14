@@ -13,6 +13,8 @@ var SOUTH = 2;
 var EAST = 1;
 var WEST = 3;
 
+var DIRECTION_LIST = [NORTH, SOUTH, EAST, WEST];
+
 //##### Helper functions #####\\
 function DoubleBuffer(initial_data){
     this.old = initial_data;
@@ -82,7 +84,7 @@ function Signal(){
         signal_strength = 0.0;
         var dir_cnt = 0;
         var has_dir = [false, false, false, false];
-        for (dir of [NORTH, SOUTH, EAST, WEST]){
+        for (dir in DIRECTION_LIST){
             var n = NeighborAt(nbr, 4, dir);
             if (n.direction.get() == dir ||
                 n.direction.get() == CENTER){
@@ -94,7 +96,7 @@ function Signal(){
             }
         }
         if (dir_cnt == 1) {
-            for (j in [NORTH, SOUTH, EAST, WEST]){
+            for (j in DIRECTION_LIST){
                 if (has_dir[j]){
                     this.direction.set(j);
                 }
@@ -104,7 +106,7 @@ function Signal(){
             signal_strength = 0.0;
         }
         if (dir_cnt == 3) {
-            for (j in [NORTH, SOUTH, EAST, WEST]){
+            for (j in DIRECTION_LIST){
                 if (!has_dir[j]){
                     this.direction.set(RotateRight(j, 2));
                 }
@@ -151,6 +153,31 @@ function Cell(){
         // Signal interacting with block.
         if (this.block.present.get() && !this.block.conductive.get()){
             this.signal.strength.set(0);
+        }
+        if (this.signal.strength.get() > 0){
+            var dir = this.signal.direction.get();
+            if (dir != CENTER){
+                var n = NeighborAt(nbr, 0, dir);
+                if (n.block.present.get() && !n.block.conductive.get()){
+                    var o =  NeighborAt(nbr, 2, dir);
+                    var p =  NeighborAt(nbr, 6, dir);
+                    if (o.block.present.get() && !o.block.conductive.get()){
+                        if (p.block.present.get() && !p.block.conductive.get()){
+                            this.signal.direction.set(RotateRight(dir,1));
+                        }else{
+                            this.signal.direction.set(RotateRight(dir, 3));
+                        }
+                        this.signal.strength.set(this.signal.strength.get());
+                    }else{
+                        if (p.block.present.get() && !p.block.conductive.get()){
+                            this.signal.direction.set(RotateRight(dir, 1));
+                            this.signal.strength.set(this.signal.strength.get());
+                        }else{
+                            this.signal.strength.set(0);
+                        }
+                    }
+                }
+            }
         }
     };
 }
