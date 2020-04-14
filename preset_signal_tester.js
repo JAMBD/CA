@@ -1,21 +1,132 @@
+function draw_grid(x, y, w, h){
+    for (var i=0; i<w; i++){
+        cells[i+x][y].block.present.set(true);
+        cells[i+x][y + h - 1].block.present.set(true);
+    }
+    for (var j=0; j<h; j++){
+        cells[x][y + j].block.present.set(true);
+        cells[x + w - 1][y + j].block.present.set(true);
+    }
+}
+
 function signal_test_setup(){
-    cells[32][32].signal.strength.set(1.0);
-    cells[32][30].block.present.set(true);
-    cells[31][31].block.present.set(true);
-    cells[32][35].block.present.set(true);
-    cells[33][34].block.present.set(true);
-    cells[16][32].signal.strength.set(1.0);
-    cells[16][30].block.present.set(true);
+    clear_game()
 
-    cells[16][36].block.present.set(true);
-    cells[14][35].block.present.set(true);
-    cells[15][36].block.present.set(true);
-    cells[18][36].block.present.set(true);
-    cells[19][35].block.present.set(true);
+    // Simple propagation.
+    cx = 5;
+    cy = 5;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx][cy].signal.strength.set(1.0);
 
-    cells[24][24].signal.strength.set(1.0);
-    cells[60][30].block.present.set(true);
-    cells[61][31].block.present.set(true);
-    cells[60][32].block.present.set(true);
+    // Directed signal.
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx][cy].signal.strength.set(1.0);
+    cells[cx - 1][cy].block.present.set(true);
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx][cy].signal.strength.set(1.0);
+    cells[cx - 1][cy].block.present.set(true);
+    cells[cx][cy - 1].block.present.set(true);
+
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx][cy].signal.strength.set(1.0);
+    cells[cx - 1][cy].block.present.set(true);
+    cells[cx][cy - 1].block.present.set(true);
+    cells[cx][cy + 1].block.present.set(true);
+
+    //Signals colliding.
+    cx = 5;
+    cy += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+    cells[cx + 3][cy].signal.strength.set(1.0);
+    cells[cx + 3][cy - 1].block.present.set(true);
+    cells[cx + 3][cy + 1].block.present.set(true);
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+    cells[cx + 2][cy].signal.strength.set(1.0);
+    cells[cx + 2][cy - 1].block.present.set(true);
+    cells[cx + 3][cy].block.present.set(true);
+    cells[cx + 2][cy + 1].block.present.set(true);
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+    cells[cx][cy - 3].signal.strength.set(1.0);
+    cells[cx - 1][cy - 3].block.present.set(true);
+    cells[cx + 1][cy - 3].block.present.set(true);
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+    cells[cx][cy - 3].signal.strength.set(1.0);
+    cells[cx - 1][cy - 3].block.present.set(true);
+    cells[cx + 1][cy - 3].block.present.set(true);
+    cells[cx][cy + 3].signal.strength.set(1.0);
+    cells[cx - 1][cy + 3].block.present.set(true);
+    cells[cx + 1][cy + 3].block.present.set(true);
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+    cells[cx + 3][cy].signal.strength.set(1.0);
+    cells[cx + 3][cy - 1].block.present.set(true);
+    cells[cx + 3][cy + 1].block.present.set(true);
+    cells[cx][cy - 3].signal.strength.set(1.0);
+    cells[cx - 1][cy - 3].block.present.set(true);
+    cells[cx + 1][cy - 3].block.present.set(true);
+    cells[cx][cy + 3].signal.strength.set(1.0);
+    cells[cx - 1][cy + 3].block.present.set(true);
+    cells[cx + 1][cy + 3].block.present.set(true);
+
+    //Signal hitting blocks.
+    cx = 5;
+    cy += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+    cells[cx + 2][cy].block.present.set(true);
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+    cells[cx + 2][cy].block.present.set(true);
+    cells[cx + 1][cy + 1].block.present.set(true);
+
+    cx += 8;
+    draw_grid(cx - 4, cy - 4, 9, 9);
+    cells[cx - 3][cy].signal.strength.set(1.0);
+    cells[cx - 3][cy - 1].block.present.set(true);
+    cells[cx - 3][cy + 1].block.present.set(true);
+    cells[cx + 2][cy].block.present.set(true);
+    cells[cx + 1][cy + 1].block.present.set(true);
+    cells[cx + 1][cy - 1].block.present.set(true);
+
     flip_cells();
+    draw();
 }
