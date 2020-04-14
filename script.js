@@ -7,11 +7,11 @@ var cells = [];
 //   ^ N
 // W + E
 //   S
-var CENTER = -1;
-var NORTH = 0;
-var SOUTH = 2;
-var EAST = 1;
-var WEST = 3;
+var CENTER = -1.0;
+var NORTH = 0.0;
+var SOUTH = 2.0;
+var EAST = 1.0;
+var WEST = 3.0;
 
 var DIRECTION_LIST = [NORTH, SOUTH, EAST, WEST];
 
@@ -34,7 +34,8 @@ function RotateRight(direction, n_turns){
     if (direction == CENTER){
         return CENTER;
     }
-    return (direction + n_turns) % 4;
+    // HACK: make sure 2 + 1 != 21
+    return (direction * 1.0 + n_turns * 1.0) % 4.0;
 }
 
 function NeighborAt(nbr, idx, direction){
@@ -163,7 +164,7 @@ function Cell(){
                     var p =  NeighborAt(nbr, 6, dir);
                     if (o.block.present.get() && !o.block.conductive.get()){
                         if (p.block.present.get() && !p.block.conductive.get()){
-                            this.signal.direction.set(RotateRight(dir,1));
+                            this.signal.direction.set(RotateRight(dir,2));
                         }else{
                             this.signal.direction.set(RotateRight(dir, 3));
                         }
