@@ -30,14 +30,14 @@ function SignalUpdate(cell, nbr){
     signal_strength = 0.0;
     var dir_cnt = 0;
     var has_dir = [false, false, false, false];
-    for (dir in DIRECTION_LIST){
-        var n = NeighborAt(nbr, 4, dir);
+    for (dir of FOUR_DIRECTION_LIST){
+        var n = NeighborAt(nbr, SOUTH, dir);
         if (n.signal.direction.get() == dir ||
             n.signal.direction.get() == CENTER){
             if (n.signal.strength.get() > 0){
                 signal_strength += n.signal.strength.get();
                 dir_cnt += 1;
-                has_dir[dir] = true;
+                has_dir[dir/2] = true;
             }
         }
     }
@@ -46,8 +46,8 @@ function SignalUpdate(cell, nbr){
         signal_strength = 0.0;
     }
     if (dir_cnt == 1) {
-        for (j in DIRECTION_LIST){
-            if (has_dir[j]){
+        for (j of FOUR_DIRECTION_LIST){
+            if (has_dir[j/2]){
                 cell.signal.direction.set(j);
             }
         }
@@ -56,9 +56,9 @@ function SignalUpdate(cell, nbr){
         signal_strength = 0.0;
     }
     if (dir_cnt == 3) {
-        for (j in DIRECTION_LIST){
-            if (!has_dir[j]){
-                cell.signal.direction.set(RotateRight(j, 2));
+        for (j of FOUR_DIRECTION_LIST){
+            if (!has_dir[j/2]){
+                cell.signal.direction.set(RotateRight(j, SOUTH));
             }
         }
     }
@@ -72,14 +72,14 @@ function SignalUpdate(cell, nbr){
                 var p =  NeighborAt(nbr, 6, dir);
                 if (o.block.present.get() && !o.block.conductive.get()){
                     if (p.block.present.get() && !p.block.conductive.get()){
-                        cell.signal.direction.set(RotateRight(dir,2));
+                        cell.signal.direction.set(RotateRight(dir,SOUTH));
                     }else{
-                        cell.signal.direction.set(RotateRight(dir, 3));
+                        cell.signal.direction.set(RotateRight(dir, WEST));
                     }
                     signal_strength += cell.signal.strength.get();
                 }else{
                     if (p.block.present.get() && !p.block.conductive.get()){
-                        cell.signal.direction.set(RotateRight(dir, 1));
+                        cell.signal.direction.set(RotateRight(dir, EAST));
                         signal_strength += cell.signal.strength.get();
                     }else{
                         signal_strength = 0.0;

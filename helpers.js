@@ -17,16 +17,15 @@ function RotateRight(direction, n_turns){
     if (direction == CENTER){
         return CENTER;
     }
-    // HACK: make sure 2 + 1 != 21
-    return (direction * 1.0 + n_turns * 1.0) % 4.0;
+    return (Number(direction) + Number(n_turns)) % Number(8);
 }
 
 function NeighborAt(nbr, idx, direction){
-    // Index into nbr.
+    // Index into nbr is the directions.
     // 7 0 1
     // 6 ^ 2
     // 5 4 3
-    return nbr[(idx + direction * 2) % 8];
+    return nbr[(Number(idx) + Number(direction)) % Number(8)];
 }
 
 function ParameterNeighbors(nbr, param){
@@ -36,3 +35,4 @@ function ParameterNeighbors(nbr, param){
     }
     return p_nbr;
 }
+
