@@ -18,7 +18,7 @@ function Signal(){
                 context.fillRect(x, y + size / 3, size / 3, size / 3);
             }
         }
-    }
+    };
     this.flip = function(){
         this.direction.flip();
         this.strength.flip();
