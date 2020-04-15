@@ -27,66 +27,63 @@ function Signal(){
 
 function SignalUpdate(cell, nbr){
     // Signal propagation logic.
-    signal_strength = 0.0;
+    function is_signal(cell, dir){
+        if (cell.signal.strength.get() <= 0) return false;
+        if (cell.signal.direction.get() == RotateRight(dir, SOUTH)) return false;
+
+        if (cell.signal.direction.get() == CENTER) return true;
+        if (cell.signal.direction.get() == dir) return true;
+        if (cell.block.present.get() && cell.block.conductive) return true;
+        return false;
+    }
+
+    var signal_strength = 0.0;
     var dir_cnt = 0;
-    var has_dir = [false, false, false, false];
+    var dir_sum = 0;
     for (dir of FOUR_DIRECTION_LIST){
         var n = NeighborAt(nbr, SOUTH, dir);
-        if (n.signal.direction.get() == dir ||
-            n.signal.direction.get() == CENTER){
-            if (n.signal.strength.get() > 0){
-                signal_strength += n.signal.strength.get();
-                dir_cnt += 1;
-                has_dir[dir/2] = true;
-            }
+        if (is_signal(n, dir)){
+            signal_strength += n.signal.strength.get();
+            dir_cnt += 1;
+            dir_sum += dir;
         }
     }
 
     if (cell.block.present.get() && !cell.block.conductive.get()){
         signal_strength = 0.0;
     }
-    if (dir_cnt == 1) {
-        for (j of FOUR_DIRECTION_LIST){
-            if (has_dir[j/2]){
-                cell.signal.direction.set(j);
-            }
-        }
-    }
-    if (dir_cnt == 2 || dir_cnt == 4) {
-        signal_strength = 0.0;
-    }
-    if (dir_cnt == 3) {
-        for (j of FOUR_DIRECTION_LIST){
-            if (!has_dir[j/2]){
-                cell.signal.direction.set(RotateRight(j, SOUTH));
-            }
-        }
+
+    if (dir_cnt == 3){
+        dir_sum = RotateRight(dir_sum, SOUTH);
     }
 
-    if (cell.signal.strength.get() > 0){
-        var dir = cell.signal.direction.get();
-        if (dir != CENTER){
-            var n = NeighborAt(nbr, 0, dir);
-            if (n.block.present.get() && !n.block.conductive.get()){
-                var o =  NeighborAt(nbr, 2, dir);
-                var p =  NeighborAt(nbr, 6, dir);
-                if (o.block.present.get() && !o.block.conductive.get()){
-                    if (p.block.present.get() && !p.block.conductive.get()){
-                        cell.signal.direction.set(RotateRight(dir,SOUTH));
-                    }else{
-                        cell.signal.direction.set(RotateRight(dir, WEST));
-                    }
-                    signal_strength += cell.signal.strength.get();
-                }else{
-                    if (p.block.present.get() && !p.block.conductive.get()){
-                        cell.signal.direction.set(RotateRight(dir, EAST));
-                        signal_strength += cell.signal.strength.get();
-                    }else{
-                        signal_strength = 0.0;
-                    }
-                }
+    if (dir_cnt % 2 == 0) {
+        signal_strength = 0.0;
+    }
+
+    for (dir of FOUR_DIRECTION_LIST){
+        var s = NeighborAt(nbr, SOUTH, dir);
+        if (!is_signal(s, dir)) continue;
+        var n = NeighborAt(nbr, NORTH, dir);
+        if (!n.block.present.get()) continue;
+        if (n.block.conductive.get()) continue;
+
+        var e =  NeighborAt(nbr, EAST, dir);
+        var w =  NeighborAt(nbr, WEST, dir);
+        if (e.block.present.get() && !e.block.conductive.get()){
+            if (w.block.present.get() && !w.block.conductive.get()){
+                dir_sum = RotateRight(dir,SOUTH);
+            }else{
+                dir_sum = RotateRight(dir, WEST);
+            }
+            signal_strength += cell.signal.strength.get();
+        }else{
+            if (w.block.present.get() && !w.block.conductive.get()){
+                dir_sum = RotateRight(dir, EAST);
+                signal_strength += cell.signal.strength.get();
             }
         }
     }
+    cell.signal.direction.set(dir_sum % 8);
     cell.signal.strength.set(signal_strength);
 };

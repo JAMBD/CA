@@ -4,7 +4,11 @@ function Block(){
     this.signal_source = new DoubleBuffer(0.0);
     this.draw = function (context, x, y, size){
         if (this.present.get()) {
-            context.fillStyle = "#42402e";
+            if (this.conductive.get()){
+                context.fillStyle = "#3e1c6b";
+            }else{
+                context.fillStyle = "#42402e";
+            }
             context.fillRect(x, y, size, size);
         }
     };
