@@ -5,9 +5,9 @@ function Block(){
     this.draw = function (context, x, y, size){
         if (this.present.get()) {
             if (this.conductive.get()){
-                context.fillStyle = "#3e1c6b";
+                context.fillStyle = "#8e6cbb";
             }else{
-                context.fillStyle = "#42402e";
+                context.fillStyle = "#000000";
             }
             context.fillRect(x, y, size, size);
         }
