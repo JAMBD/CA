@@ -28,8 +28,15 @@
                         <font size="3" color="#FFFFFF">DRAW</font>
                     </p>
                 </div>
-                <button type="button" style="width:100%;">Signal</button> 
-                <button type="button" style="width:100%;">Block</button>
+                <select id="drawSelector">
+                    <option value="Block">Block</option>
+                    <option value="Signal">Signal</option>
+                    <option value="Water">Water</option>
+                    <option value="Earth">Earth</option>
+                    <option value="Wind">Wind</option>
+                    <option value="Fire">Fire</option>
+                    <option value="Erase">Erase</option>
+                </select>
                 <div class="flex_element" style="height:5%; display:flex; flex-flow: column nowrap;">
                     <p align="center" style="margin-top:auto;">
                         <font size="3" color="#FFFFFF">PRESETS</font>
@@ -46,6 +53,7 @@
                 <div class="slidecontainer">
                   <font size="3" color="#FFFFFF">⏯</font>
                   <input type="checkbox" id="playPause">
+                  <button type="button" onclick="step()">Step</button>
                   <font size="3" color="#FFFFFF">speed</font>
                   <input type="range" min="0" max="950" value="500" class="slider" id="myRange">
                 </div>
@@ -59,6 +67,7 @@
         <script type="text/javascript" src="cell_signal.js"></script>
         <script type="text/javascript" src="cell.js"></script>
         <script type="text/javascript" src="script.js"></script>
+        <script type="text/javascript" src="paint.js"></script>
         <script type="text/javascript" src="preset_signal_tester.js"></script>
         <script type="text/javascript" src="preset_element_tester.js"></script>
     </body>

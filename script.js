@@ -37,51 +37,9 @@ play_stop.oninput = function () {
     }
 }
 
-canvas.addEventListener('mousedown', function (evt) {
-        mouseButtonDown = true;
-        moveFunction(evt);
-    }, false);
-canvas.addEventListener('mousemove', moveFunction, false);
-canvas.addEventListener('mouseup',    function () { mouseButtonDown = false;}, false);
-canvas.addEventListener('mouseleave', function () { mouseButtonDown = false; }, false);
-
-function moveFunction(evt) {
-    var mousePos = getMousePos(canvas, evt);
-    if (mouseButtonDown) {
-        setCellValue(mousePos.x, mousePos.y);
-        paintMouseCell(mousePos.x, mousePos.y, draw_scale * cell_fill_fraction, "black");
-    }
-    // Uncoment to highlight where the mouse is hovering
-    //else {
-    //    paintMouseCell(mousePos.x, mousePos.y, draw_scale * cell_fill_fraction, "white");
-    //}
-}
-
-function paintMouseCell(x, y, size, color) {
-    context.fillStyle = color;
-    var newX = x - (x % draw_scale);
-    var newY = y - (y % draw_scale);
-    context.fillRect(newX, newY, size, size);
-}
-
-function setCellValue(x, y) {
-    var cellX = Math.floor(x / draw_scale);
-    var cellY = Math.floor(y / draw_scale);
-    cells[cellX][cellY].block.present.set(true);
-}
-
-function writeMessage(canvas, message) {
-    var context = canvas.getContext('2d');
-    context.font = '18pt Calibri';
-    context.fillStyle = 'white';
-    context.fillText(message, 10, 25);
-}
-function getMousePos(canvas, evt) {
-    var rect = canvas.getBoundingClientRect();
-    return {
-        x: evt.clientX - rect.left,
-        y: evt.clientY - rect.top
-    };
+function step() {
+    update();
+    draw();
 }
 
 
