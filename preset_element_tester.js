@@ -24,6 +24,19 @@ function element_test_setup(){
     cells[cx][cy + 6].element.water.level.set(4.0);
     cells[cx + 3][cy + 3].element.water.level.set(4.0);
 
+    cx = 16;
+    cy += 20;
+    cells[cx][cy - 1].element.air.pressure.set(32.0);
+    cells[cx][cy].element.air.pressure.set(32.0);
+    cells[cx - 1][cy - 1].element.air.pressure.set(32.0);
+
+    cx += 16
+    cells[cx][cy-2].element.air.pressure.set(32.0);
+    cells[cx][cy-1].element.air.pressure.set(32.0);
+    cells[cx][cy].element.air.pressure.set(32.0);
+    cells[cx][cy+1].element.air.pressure.set(32.0);
+    cells[cx][cy+2].element.air.pressure.set(32.0);
+
     flip_cells();
     draw();
 }

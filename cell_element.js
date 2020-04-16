@@ -1,9 +1,91 @@
 function Air(){
     this.direction = new DoubleBuffer(CENTER);
+    this.pressure = new DoubleBuffer(0.0);
     this.draw = function(context, x, y, size){
+        context.strokeStyle = "#ffffff";
+        context.lineWidth = size / 4;
+        var dir = this.direction.get();
+        if (this.pressure.get() > 0){
+            context.globalAlpha = 0.1;
+            context.fillStyle = "#ffffff";
+            context.fillRect(x, y, size, size);
+            context.globalAlpha = this.pressure.get() / 32 * 0.8 + 0.2;
+            if (dir == CENTER){
+            context.fillRect(x+size/3, y+size/3, size/3, size/3);
+            }
+            // TODO: Pretty sure there is a clean way to do this.
+            context.beginPath();
+            if (dir == NORTH){
+                context.moveTo(x, y + size/2);
+                context.lineTo(x + size/2, y);
+                context.lineTo(x + size, y + size/2);
+            }
+            if (dir == SOUTH){
+                context.moveTo(x, y + size/2);
+                context.lineTo(x + size/2, y + size);
+                context.lineTo(x + size, y + size/2);
+            }
+            if (dir == EAST){
+                context.moveTo(x + size/2, y);
+                context.lineTo(x + size, y + size/2);
+                context.lineTo(x + size/2, y + size);
+            }
+            if (dir == WEST){
+                context.moveTo(x + size/2, y);
+                context.lineTo(x, y + size/2);
+                context.lineTo(x + size/2, y + size);
+            }
+            if (dir == NORTH_WEST){
+                context.moveTo(x + size/2, y);
+                context.lineTo(x, y);
+                context.lineTo(x, y + size/2);
+            }
+            if (dir == NORTH_EAST){
+                context.moveTo(x + size/2, y);
+                context.lineTo(x + size, y);
+                context.lineTo(x + size, y + size/2);
+            }
+            if (dir == SOUTH_WEST){
+                context.moveTo(x + size/2, y + size);
+                context.lineTo(x, y + size);
+                context.lineTo(x, y + size/2);
+            }
+            if (dir == SOUTH_EAST){
+                context.moveTo(x + size/2, y + size);
+                context.lineTo(x + size, y + size);
+                context.lineTo(x + size, y + size/2);
+            }
+            context.stroke();
+        }
+        context.globalAlpha = 1.0;
     };
     this.flip = function(){
+        this.direction.flip();
+        this.pressure.flip();
     };
+}
+
+function AirUpdate(cell, nbr){
+    var found_dir = [];
+    var sum_pressures = Math.floor(cell.air.pressure.get() / 2);
+    if (cell.air.pressure.get() > 0){
+        found_dir.push(cell.air.direction.get());
+    }
+    for (dir of ALL_DIRECTION_LIST){
+        var n = NeighborAt(nbr, SOUTH, dir);
+        if (n.air.pressure.get() <= 0) continue;
+        var dir_err = CompareDirection(n.air.direction.get(), dir);
+        if (dir_err > 1) continue;
+        var n_pressure = (
+            n.air.pressure.get() -
+            1.0 -
+            (IsLongDirection(dir) ? 1 : 0));
+        if (n_pressure < 0) continue;
+        found_dir.push(dir);
+        if (n_pressure > sum_pressures) sum_pressures = n_pressure;
+    }
+    cell.air.pressure.set(sum_pressures);
+    cell.air.direction.set(AverageDirections(found_dir));
 }
 
 function Water(){
@@ -87,10 +169,10 @@ function Element(){
     this.fire = new Fire();
     this.earth = new Earth();
     this.draw = function(context, x, y, size){
-        this.air.draw(context, x, y, size);
+        this.earth.draw(context, x, y, size);
         this.water.draw(context, x, y, size);
         this.fire.draw(context, x, y, size);
-        this.earth.draw(context, x, y, size);
+        this.air.draw(context, x, y, size);
     }
     this.flip = function(){
         this.air.flip();
@@ -103,4 +185,5 @@ function Element(){
 function ElementUpdate(cell, nbr){
     var element_nbr = ParameterNeighbors(nbr, "element");
     WaterUpdate(cell.element, element_nbr);
+    AirUpdate(cell.element, element_nbr);
 }
