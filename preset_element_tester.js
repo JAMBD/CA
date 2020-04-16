@@ -37,6 +37,23 @@ function element_test_setup(){
     cells[cx][cy+1].element.air.pressure.set(32.0);
     cells[cx][cy+2].element.air.pressure.set(32.0);
 
+    cy += 16
+    cx = 8;
+    cells[cx+15][cy+4].element.air.pressure.set(32.0);
+    cells[cx+30][cy+4].element.water.level.set(4.0);
+    for (var i=0; i<30; i++){
+        cells[cx+i][cy].element.earth.present.set(true);
+        cells[cx+i][cy+1].element.earth.present.set(true);
+        cells[cx+i][cy+8].element.earth.present.set(true);
+        cells[cx+i][cy+1+8].element.earth.present.set(true);
+    }
+    for (var i=0; i<10; i++){
+        cells[cx+i+30][cy-i].element.earth.present.set(true);
+        cells[cx+i+30][cy-i+1].element.earth.present.set(true);
+        cells[cx+i+30][cy+i+8].element.earth.present.set(true);
+        cells[cx+i+30][cy+i+9].element.earth.present.set(true);
+    }
+
     flip_cells();
     draw();
 }
