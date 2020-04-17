@@ -6,6 +6,8 @@ function signal_test_setup(){
     cy = 5;
     DrawBox(cx - 4, cy - 4, 9, 9);
     cells[cx][cy].signal.strength.set(1.0);
+    cells[cx][cy].signal.strength.set(1.0);
+
 
     // Directed signal.
     cx += 8;

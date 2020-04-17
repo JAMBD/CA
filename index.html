@@ -30,12 +30,24 @@
                 </div>
                 <select id="drawSelector">
                     <option value="Block">Block</option>
+                    <option value="Conductor">Conductor</option>
                     <option value="Signal">Signal</option>
                     <option value="Water">Water</option>
                     <option value="Earth">Earth</option>
                     <option value="Wind">Wind</option>
                     <option value="Fire">Fire</option>
                     <option value="Erase">Erase</option>
+                </select>
+                <select id="direction">
+                    <option value=-1.0>Center</option>
+                    <option value=0.0>North</option>
+                    <option value=1.0>NorthEast</option>
+                    <option value=2.0>East</option>
+                    <option value=3.0>SouthEast</option>
+                    <option value=4.0>South</option>
+                    <option value=5.0>SouthWest</option>
+                    <option value=6.0>West</option>
+                    <option value=7.0>NorthWest</option>
                 </select>
                 <div class="flex_element" style="height:5%; display:flex; flex-flow: column nowrap;">
                     <p align="center" style="margin-top:auto;">
@@ -55,7 +67,7 @@
                   <input type="checkbox" id="playPause">
                   <button type="button" onclick="step()">Step</button>
                   <font size="3" color="#FFFFFF">speed</font>
-                  <input type="range" min="0" max="950" value="500" class="slider" id="myRange">
+                  <input type="range" min="0" max="990" value="500" class="slider" id="myRange">
                 </div>
             </div>
         </div>

@@ -5,6 +5,7 @@ function element_test_setup(){
     cx = 5;
     cy = 5;
     cells[cx][cy].element.water.level.set(4.0);
+    cells[cx][cy].element.water.direction.set(SOUTH_EAST);
 
     cx += 10
     cells[cx][cy].element.water.level.set(4.0);

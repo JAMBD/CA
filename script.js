@@ -70,6 +70,7 @@ function clear_game(){
             cells[i][j] = new Cell();
         }
     }
+    draw();
 }
 
 function game_setup(){
