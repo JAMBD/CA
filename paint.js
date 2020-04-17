@@ -56,8 +56,8 @@ function setCellValue(x, y) {
             cells[cx][cy].flip();
             break;
         case "Earth":
-            cells[cx][cy].element.earth.present.set(true);
-            color = "brown";
+            cells[cx][cy].element.earth.height.set(5);
+            cells[cx][cy].flip();
             break;
         case "Wind":
             cells[cx][cy].element.air.pressure.set(10);
@@ -76,7 +76,7 @@ function setCellValue(x, y) {
     switch (selector.value) {
         case "Block":
         case "Conductor":
-        case "Earth":
+        //case "Earth":
             paintMouseCell(x, y, draw_scale * cell_fill_fraction, color);
             break;
         default:
