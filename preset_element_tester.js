@@ -4,57 +4,54 @@ function element_test_setup(){
     // Simple propagation.
     cx = 5;
     cy = 5;
-    cells[cx][cy].element.water.level.set(4.0);
-    cells[cx][cy].element.water.direction.set(SOUTH_EAST);
+    cells[cx][cy].element.air.pressure.set(8);
 
-    cx += 10
-    cells[cx][cy].element.water.level.set(4.0);
-    cells[cx][cy + 1].element.water.level.set(4.0);
-    cells[cx + 1][cy].element.water.level.set(4.0);
+    cx += 16;
+    cells[cx][cy - 2].element.air.pressure.set(8);
+    cells[cx][cy - 2].element.air.direction.set(SOUTH);
 
-    cx += 10
-    cells[cx][cy].element.water.level.set(4.0);
-    cells[cx + 2][cy].element.water.level.set(4.0);
+    cx += 8;
+    cells[cx][cy].element.air.pressure.set(8);
+    cells[cx][cy].element.air.direction.set(EAST);
+    cells[cx + 8][cy].element.air.pressure.set(8);
+    cells[cx + 8][cy].element.air.direction.set(WEST);
 
-    cx += 10
-    cells[cx][cy].element.water.level.set(4.0);
-    cells[cx + 5][cy].element.water.level.set(4.0);
+    cx += 16;
+    cells[cx][cy - 1].element.air.pressure.set(8);
+    cells[cx][cy - 1].element.air.direction.set(EAST);
+    cells[cx][cy].element.air.pressure.set(8);
+    cells[cx][cy].element.air.direction.set(EAST);
+    cells[cx][cy + 1].element.air.pressure.set(8);
+    cells[cx][cy + 1].element.air.direction.set(EAST);
 
-    cx += 15
-    cells[cx][cy].element.water.level.set(4.0);
-    cells[cx][cy + 6].element.water.level.set(4.0);
-    cells[cx + 3][cy + 3].element.water.level.set(4.0);
+    cx = 5;
+    cy += 8;
+    cells[cx][cy].element.air.pressure.set(8);
+    cells[cx][cy].element.air.direction.set(SOUTH_EAST);
 
-    cx = 16;
-    cy += 20;
-    cells[cx][cy - 1].element.air.pressure.set(32.0);
-    cells[cx][cy].element.air.pressure.set(32.0);
-    cells[cx - 1][cy - 1].element.air.pressure.set(32.0);
+    flip_cells();
+    draw();
+}
 
-    cx += 16
-    cells[cx][cy-2].element.air.pressure.set(32.0);
-    cells[cx][cy-1].element.air.pressure.set(32.0);
-    cells[cx][cy].element.air.pressure.set(32.0);
-    cells[cx][cy+1].element.air.pressure.set(32.0);
-    cells[cx][cy+2].element.air.pressure.set(32.0);
-
-    cy += 16
-    cx = 8;
-    cells[cx+15][cy+4].element.air.pressure.set(32.0);
-    cells[cx+30][cy+4].element.water.level.set(4.0);
-    for (var i=0; i<30; i++){
-        cells[cx+i][cy].element.earth.present.set(true);
-        cells[cx+i][cy+1].element.earth.present.set(true);
-        cells[cx+i][cy+8].element.earth.present.set(true);
-        cells[cx+i][cy+1+8].element.earth.present.set(true);
+function terrain_test_setup(){
+    clear_game()
+    for (var x=0; x < BOARD_WIDTH; x++){
+        for (var y=0; y < BOARD_HEIGHT; y++){
+            cells[x][y].element.earth.height.set(
+                // TODO: perlin noise here.
+                Math.floor(Math.random() * 17));
+        }
     }
-    for (var i=0; i<10; i++){
-        cells[cx+i+30][cy-i].element.earth.present.set(true);
-        cells[cx+i+30][cy-i+1].element.earth.present.set(true);
-        cells[cx+i+30][cy+i+8].element.earth.present.set(true);
-        cells[cx+i+30][cy+i+9].element.earth.present.set(true);
+    for (var y=-16; y < 16; y++){
+        cells[1][BOARD_HEIGHT/2 + y].element.air.pressure.set(32);
+        cells[1][BOARD_HEIGHT/2 + y].element.air.direction.set(CENTER);
+        cells[BOARD_WIDTH/2 + y][1].element.air.pressure.set(32);
+        cells[BOARD_WIDTH/2 + y][1].element.air.direction.set(CENTER);
+        cells[BOARD_WIDTH - 2][BOARD_HEIGHT/2 + y].element.air.pressure.set(32);
+        cells[BOARD_WIDTH - 2][BOARD_HEIGHT/2 + y].element.air.direction.set(CENTER);
+        cells[BOARD_WIDTH/2 + y][BOARD_HEIGHT - 2].element.air.pressure.set(32);
+        cells[BOARD_WIDTH/2 + y][BOARD_HEIGHT - 2].element.air.direction.set(CENTER);
     }
-
     flip_cells();
     draw();
 }
