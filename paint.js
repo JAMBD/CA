@@ -1,13 +1,21 @@
 ﻿var selector = document.getElementById("drawSelector");
 var direction = document.getElementById("direction");
+var intensity = document.getElementById("intensity");
+var lastPainted = [];
 
 canvas.addEventListener('mousedown', function (evt) {
     mouseButtonDown = true;
     moveFunction(evt);
 }, false);
 canvas.addEventListener('mousemove', moveFunction, false);
-canvas.addEventListener('mouseup', function () { mouseButtonDown = false; }, false);
-canvas.addEventListener('mouseleave', function () { mouseButtonDown = false; }, false);
+canvas.addEventListener('mouseup', function () {
+    mouseButtonDown = false;
+    lastPainted = [];
+}, false);
+canvas.addEventListener('mouseleave', function () {
+    mouseButtonDown = false;
+    lastPainted = [];
+}, false);
 
 function moveFunction(evt) {
     var mousePos = getMousePos(canvas, evt);
@@ -32,40 +40,55 @@ function setCellValue(x, y) {
     var cx = Math.floor(x / draw_scale);
     var cy = Math.floor(y / draw_scale);
 
-    var color;
+    if (cx == lastPainted[0] && cy == lastPainted[1]) {
+        return;
+    }
+
+    lastPainted[0] = cx;
+    lastPainted[1] = cy;
+
+    var increment = parseInt(intensity.value);
 
     switch (selector.value) {
         case "Block":
             cells[cx][cy].block.present.set(true);
             color = "black";
+            paintMouseCell(x, y, draw_scale * cell_fill_fraction, color);
             break;
         case "Conductor":
             cells[cx][cy].block.present.set(true);
             cells[cx][cy].block.conductive.set(true);
             color = "purple";
+            paintMouseCell(x, y, draw_scale * cell_fill_fraction, color);
             break;
         case "Signal":
             cells[cx][cy].signal.strength.set(1.0);
             cells[cx][cy].signal.direction.set(direction.value);
             cells[cx][cy].flip();
-            color = "green";
             break;
         case "Water":
-            cells[cx][cy].element.water.level.set(4);
+            var level = cells[cx][cy].element.water.level.get();
+            level = level + increment > WATER_MAX ? WATER_MAX : level + increment;
+            cells[cx][cy].element.water.level.set(level);
             cells[cx][cy].element.water.direction.set(direction.value);
             cells[cx][cy].flip();
             break;
         case "Earth":
-            cells[cx][cy].element.earth.height.set(5);
+            var height = cells[cx][cy].element.earth.height.get();
+            height = height + increment > EARTH_MAX ? EARTH_MAX : height + increment;
+            cells[cx][cy].element.earth.height.set(height);
             cells[cx][cy].flip();
             break;
         case "Wind":
-            cells[cx][cy].element.air.pressure.set(10);
+            var pressure = cells[cx][cy].element.air.pressure.get();
+            pressure = pressure + increment > WIND_MAX ? WIND_MAX : pressure + increment;
+            cells[cx][cy].element.air.pressure.set(pressure);
             cells[cx][cy].element.air.direction.set(direction.value);
             cells[cx][cy].flip();
             break;
         case "Fire":
             color = "orange";
+            paintMouseCell(x, y, draw_scale * cell_fill_fraction, color);
             break;
         case "Erase":
             cells[cx][cy] = new Cell();
@@ -76,8 +99,6 @@ function setCellValue(x, y) {
     switch (selector.value) {
         case "Block":
         case "Conductor":
-        //case "Earth":
-            paintMouseCell(x, y, draw_scale * cell_fill_fraction, color);
             break;
         default:
             // John, is there a way to make the next line work with Block, Conductor and Earth as well? Because paintMouseCell is hind of hacky
