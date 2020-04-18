@@ -76,7 +76,7 @@ function AirUpdate(cell, nbr){
     }
     for (dir of ALL_DIRECTION_LIST){
         var n = NeighborAt(nbr, SOUTH, dir);
-        if (n.air.pressure.get() <= 0) continue;
+        if (n.air.pressure.get() <= cell.earth.height.get() - n.earth.height.get()) continue;
         var dir_err = CompareDirection(n.air.direction.get(), dir);
         if (dir_err > 1) continue;
         var n_pressure = n.air.pressure.get() - 1;
@@ -87,8 +87,26 @@ function AirUpdate(cell, nbr){
         found_dir.push(dir);
         if (n_pressure > sum_pressures) sum_pressures = n_pressure;
     }
+    // Interact with earth
+    for (side of [[EAST, SOUTH_EAST], [WEST,SOUTH_WEST]]){
+        for (dir of ALL_DIRECTION_LIST){
+            var n = NeighborAt(nbr, SOUTH, dir);
+            if (n.air.pressure.get() <= 0) continue;
+            if (n.air.direction.get() == CENTER) continue;
+            var dir_err = CompareDirection(n.air.direction.get(), RotateRight(dir, side[0]));
+            if (dir_err > 0) continue;
+            if (NeighborAt(nbr,  side[1], dir).earth.height.get() <= n.earth.height.get()) continue;
+            var n_pressure = n.air.pressure.get();
+            n_pressure = Math.floor(n_pressure / 2);
+            if (n_pressure < 0) continue;
+            found_dir.push(dir);
+            if (n_pressure > sum_pressures) sum_pressures = n_pressure;
+        }
+    }
     cell.air.pressure.set(sum_pressures);
-    cell.air.direction.set(AverageDirections(found_dir));
+    var new_dir = AverageDirections(found_dir);
+    if (new_dir != CENTER && NeighborAt(nbr, NORTH, new_dir).earth.height.get() > cell.earth.height.get() + sum_pressures) new_dir = CENTER;
+    cell.air.direction.set(new_dir);
 }
 
 function Water(){
