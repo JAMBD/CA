@@ -9,7 +9,7 @@ function Air(){
             context.globalAlpha = 0.1;
             context.fillStyle = "#ffffff";
             context.fillRect(x, y, size, size);
-            context.globalAlpha = this.pressure.get() / 32 * 0.8 + 0.2;
+            context.globalAlpha = this.pressure.get() / WIND_MAX * 0.8 + 0.2;
             if (dir == CENTER){
             context.fillRect(x+size/3, y+size/3, size/3, size/3);
             }
@@ -114,7 +114,7 @@ function Water(){
     this.level = new DoubleBuffer(0);
     this.draw = function(context, x, y, size){
         if (this.level.get() > 0){
-            context.globalAlpha = this.level.get() / 8.0 + 0.5;
+            context.globalAlpha = this.level.get() / WATER_MAX * 0.5 + 0.5;
             context.fillStyle = "#0055ff";
             context.fillRect(x, y, size, size);
             context.fillStyle = "#2e74ff";
@@ -163,22 +163,27 @@ function WaterUpdate(cell, nbr){
         found_dir.push(dir);
         if (n_level > sum_levels) sum_levels = n_level;
     }
-    if (cell.air.pressure.get() > 0 && cell.water.level.get() > 0){
-        found_dir.push(cell.air.direction.get());
-        if (CompareDirection(n.water.direction.get(), n.air.direction.get()) < 1 && n.water.direction.get() != CENTER){
-            sum_levels += 1;
+    var lower = false;
+    for (dir of ALL_DIRECTION_LIST){
+        var n = NeighborAt(nbr, NORTH, dir);
+        if (n.earth.height.get() < cell.earth.height.get()){
+            found_dir.push(dir);
+            lower = true;
         }
     }
-    if (sum_levels > 4) sum_levels = 4.0;
-    if (cell.water.direction.get() != CENTER || cell.water.level.get() == 0){
+    for (dir of ALL_DIRECTION_LIST){
+        var n = NeighborAt(nbr, NORTH, dir);
+        if (n.water.level.get() <= 0) continue;
+        if (n.water.direction.get() != CENTER) continue;
+        if (n.earth.height.get() > cell.earth.height.get()){
+            sum_levels = n.water.level.get();
+            found_dir = [];
+        }
+    }
+    if (sum_levels > WATER_MAX) sum_levels = WATER_MAX;
+    if (cell.water.direction.get() != CENTER || cell.water.level.get() < sum_levels || lower){
         cell.water.level.set(sum_levels);
         cell.water.direction.set(AverageDirections(found_dir));
-    }
-    if (cell.water.direction.get() == CENTER){
-        if (cell.air.pressure.get() > 0){
-            cell.water.direction.set(cell.air.direction.get());
-        }
-        cell.water.level.set(cell.water.level.get() - 1);
     }
 }
 
