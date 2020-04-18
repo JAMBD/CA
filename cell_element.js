@@ -114,7 +114,7 @@ function Water(){
     this.level = new DoubleBuffer(0);
     this.draw = function(context, x, y, size){
         if (this.level.get() > 0){
-            context.globalAlpha = this.level.get() / WATER_MAX * 0.5 + 0.5;
+            context.globalAlpha = this.level.get() / WATER_MAX * 0.8 + 0.2;
             context.fillStyle = "#0055ff";
             context.fillRect(x, y, size, size);
             context.fillStyle = "#2e74ff";
@@ -145,30 +145,82 @@ function Water(){
 }
 
 function WaterUpdate(cell, nbr){
+
+    if (cell.water.level.get() > 0 && cell.water.direction.get() == CENTER){
+        // Treat still blocks differently
+        var cell_height = cell.earth.height.get() + cell.water.level.get();
+        var any_lower = false;
+        var n_greater = 0;
+        var level_change = cell.water.level.get();
+        for (dir of ALL_DIRECTION_LIST){
+            var n = NeighborAt(nbr, NORTH, dir);
+            var n_height = n.earth.height.get();
+            if (n.water.direction.get() == CENTER){
+                n_height += n.water.level.get();
+            }
+            if (cell_height > n_height){
+                any_lower = true;
+            }
+            if (cell_height < n_height &&
+                n.water.level.get() > level_change &&
+                n.water.direction.get() != CENTER &&
+                CompareDirection(n.water.direction.get(), RotateRight(dir, SOUTH)) < 3){
+                level_change = n.water.level.get();
+            }
+            if (cell_height < n_height &&
+                n.water.level.get() > cell.water.level.get() &&
+                n.water.direction.get() == CENTER){
+                n_greater += 1;
+            }
+
+        }
+
+        if (any_lower) level_change -= 1;
+        if (n_greater > 3) level_change += 1;
+        
+        if (level_change > WATER_MAX) level_change = WATER_MAX;
+        if (level_change < 0) level_change = 0;
+        cell.water.level.set(level_change);
+        return;
+    }
+
     var found_dir = [];
-    var sum_levels = cell.water.level.get();
+    var gradient_dir = []
+    var sum_levels = 0;
+    var cell_height = cell.earth.height.get();
     for (dir of ALL_DIRECTION_LIST){
         var n = NeighborAt(nbr, SOUTH, dir);
+        var n_height = n.earth.height.get();
+        if (n.water.direction.get() == CENTER){
+            n_height += n.water.level.get();
+        }
+        if (cell_height < n_height){
+            gradient_dir.push(dir);
+        }
+        if (cell_height > n_height){
+            gradient_dir.push(RotateRight(dir, SOUTH));
+        }
         if (n.water.level.get() <= 0) continue;
-        if (n.water.direction.get() == CENTER && n.earth.height.get() + n.water.level.get() < cell.earth.height.get() + cell.water.level.get()) continue;
-        var earth_delta = cell.earth.height.get() - n.earth.height.get();
-        if (earth_delta < 0) earth_delta = 0;
+        if (n.water.level.get() + n.earth.height.get() <= cell.earth.height.get()) continue;
         var dir_err = CompareDirection(n.water.direction.get(), dir);
         if (dir_err > 2) continue;
         var n_level = (
             n.water.level.get() -
-            earth_delta -
             (IsLongDirection(dir) ? 2: 1));
-        if (n_level < 0) continue;
-        if (n_level >= sum_levels){
+        if (n_level > sum_levels){
             sum_levels = n_level;
-            found_dir.push(dir);
         }
+        found_dir.push(dir);
     }
     if (sum_levels > WATER_MAX) sum_levels = WATER_MAX;
     var new_dir = AverageDirections(found_dir);
-    var front_cell = NeighborAt(nbr, NORTH, new_dir);
-    if (new_dir != CENTER && front_cell.earth.height.get() > cell.earth.height.get()) new_dir = CENTER;
+    if (gradient_dir.length > 0 && AverageDirections(gradient_dir) == CENTER) new_dir = CENTER;
+    if (new_dir != CENTER){
+        n = NeighborAt(nbr, NORTH, new_dir);
+        n_height = n.earth.height.get();
+        if (n.water.direction.get() == CENTER) n_height += n.water.level.get();
+        if (n_height > cell.earth.height.get()) new_dir = CENTER;
+    }
     cell.water.level.set(sum_levels);
     cell.water.direction.set(new_dir);
 }
