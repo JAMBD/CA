@@ -146,45 +146,31 @@ function Water(){
 
 function WaterUpdate(cell, nbr){
     var found_dir = [];
-    var sum_levels = 0;
-    if (cell.water.level.get() > 0){
-        found_dir.push(cell.water.direction.get());
-    }
+    var sum_levels = cell.water.level.get();
     for (dir of ALL_DIRECTION_LIST){
         var n = NeighborAt(nbr, SOUTH, dir);
         if (n.water.level.get() <= 0) continue;
+        if (n.water.direction.get() == CENTER && n.earth.height.get() + n.water.level.get() < cell.earth.height.get() + cell.water.level.get()) continue;
+        var earth_delta = cell.earth.height.get() - n.earth.height.get();
+        if (earth_delta < 0) earth_delta = 0;
         var dir_err = CompareDirection(n.water.direction.get(), dir);
         if (dir_err > 2) continue;
         var n_level = (
             n.water.level.get() -
-            1.0 -
-            (IsLongDirection(dir) ? 1 : 0));
+            earth_delta -
+            (IsLongDirection(dir) ? 2: 1));
         if (n_level < 0) continue;
-        found_dir.push(dir);
-        if (n_level > sum_levels) sum_levels = n_level;
-    }
-    var lower = false;
-    for (dir of ALL_DIRECTION_LIST){
-        var n = NeighborAt(nbr, NORTH, dir);
-        if (n.earth.height.get() < cell.earth.height.get()){
+        if (n_level >= sum_levels){
+            sum_levels = n_level;
             found_dir.push(dir);
-            lower = true;
-        }
-    }
-    for (dir of ALL_DIRECTION_LIST){
-        var n = NeighborAt(nbr, NORTH, dir);
-        if (n.water.level.get() <= 0) continue;
-        if (n.water.direction.get() != CENTER) continue;
-        if (n.earth.height.get() > cell.earth.height.get()){
-            sum_levels = n.water.level.get();
-            found_dir = [];
         }
     }
     if (sum_levels > WATER_MAX) sum_levels = WATER_MAX;
-    if (cell.water.direction.get() != CENTER || cell.water.level.get() < sum_levels || lower){
-        cell.water.level.set(sum_levels);
-        cell.water.direction.set(AverageDirections(found_dir));
-    }
+    var new_dir = AverageDirections(found_dir);
+    var front_cell = NeighborAt(nbr, NORTH, new_dir);
+    if (new_dir != CENTER && front_cell.earth.height.get() > cell.earth.height.get()) new_dir = CENTER;
+    cell.water.level.set(sum_levels);
+    cell.water.direction.set(new_dir);
 }
 
 function Fire(){
