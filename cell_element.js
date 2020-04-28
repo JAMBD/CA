@@ -66,47 +66,74 @@ function Air(){
 }
 
 function AirUpdate(cell, nbr){
-    var found_dir = [];
-    var sum_pressures = 0;
-    if (cell.air.pressure.get() > 0){
-        found_dir.push(cell.air.direction.get());
-        if (cell.air.direction.get() == CENTER){
-            sum_pressures += Math.floor(cell.air.pressure.get() / 2);
-        }
-    }
+    found_dir = [];
+    found_pressure = 0;
+
+    // Basic propagation and reflection precondition logic.
     for (dir of ALL_DIRECTION_LIST){
         var n = NeighborAt(nbr, SOUTH, dir);
-        if (n.air.pressure.get() <= cell.earth.height.get() - n.earth.height.get()) continue;
-        var dir_err = CompareDirection(n.air.direction.get(), dir);
-        if (dir_err > 1) continue;
-        var n_pressure = n.air.pressure.get() - 1;
-        if (IsLongDirection(dir)){
-            n_pressure = Math.floor(n_pressure / 2);
+        if (n.air.direction.get() != dir) continue;
+        var n_dir = dir;
+        if (NeighborAt(nbr, NORTH, dir).earth.height.get() > 0) {
+            var n_earth_dir = [];
+            if (NeighborAt(nbr, NORTH_EAST, dir).earth.height.get() > 0 &&
+                NeighborAt(nbr, NORTH_WEST, dir).earth.height.get() > 0){
+                n_earth_dir.push(RotateRight(dir, SOUTH));
+            }
+            if (NeighborAt(nbr, NORTH_EAST, dir).earth.height.get() > 0 &&
+                NeighborAt(nbr, EAST, dir).earth.height.get() > 0){
+                n_earth_dir.push(RotateRight(dir, WEST));
+            }
+            if (NeighborAt(nbr, NORTH_WEST, dir).earth.height.get() > 0 &&
+                NeighborAt(nbr, WEST, dir).earth.height.get() > 0){
+                n_earth_dir.push(RotateRight(dir, EAST));
+            }
+            if (n_earth_dir.length > 0){
+                n_dir = AverageDirections(n_earth_dir);
+            }
         }
-        if (n_pressure < 0) continue;
+        found_dir.push(n_dir);
+        found_pressure += n.air.pressure.get();
+    }
+
+    // Air splitting precondition logic.
+    for (dir of FOUR_DIRECTION_LIST){
+        var n = NeighborAt(nbr, SOUTH, dir);
+        if (NeighborAt(nbr, WEST, dir).earth.height.get() <= 0) continue;
+        if (! PointAt(n.air.direction.get(), SOUTH, WEST, dir)) continue;
         found_dir.push(dir);
-        if (n_pressure > sum_pressures) sum_pressures = n_pressure;
+        found_pressure += n.air.pressure.get();
     }
-    // Interact with earth
-    for (side of [[EAST, SOUTH_EAST], [WEST,SOUTH_WEST]]){
-        for (dir of ALL_DIRECTION_LIST){
-            var n = NeighborAt(nbr, SOUTH, dir);
-            if (n.air.pressure.get() <= 0) continue;
-            if (n.air.direction.get() == CENTER) continue;
-            var dir_err = CompareDirection(n.air.direction.get(), RotateRight(dir, side[0]));
-            if (dir_err > 0) continue;
-            if (NeighborAt(nbr,  side[1], dir).earth.height.get() <= n.earth.height.get()) continue;
-            var n_pressure = n.air.pressure.get();
-            n_pressure = Math.floor(n_pressure / 2);
-            if (n_pressure < 0) continue;
-            found_dir.push(dir);
-            if (n_pressure > sum_pressures) sum_pressures = n_pressure;
-        }
+    for (dir of FOUR_DIRECTION_LIST){
+        var n = NeighborAt(nbr, SOUTH, dir);
+        if (NeighborAt(nbr, EAST, dir).earth.height.get() <= 0) continue;
+        if (! PointAt(n.air.direction.get(), SOUTH, EAST, dir)) continue;
+        found_dir.push(dir);
+        found_pressure += n.air.pressure.get();
     }
-    cell.air.pressure.set(sum_pressures);
-    var new_dir = AverageDirections(found_dir);
-    if (new_dir != CENTER && NeighborAt(nbr, NORTH, new_dir).earth.height.get() > cell.earth.height.get() + sum_pressures) new_dir = CENTER;
-    cell.air.direction.set(new_dir);
+    for (dir of LONG_DIRECTION_LIST){
+        var n = NeighborAt(nbr, SOUTH, dir);
+        if (NeighborAt(nbr, SOUTH_WEST, dir).earth.height.get() <= 0) continue;
+        if (! PointAt(n.air.direction.get(), SOUTH, SOUTH_WEST, dir)) continue;
+        found_dir.push(dir);
+        found_pressure += n.air.pressure.get();
+    }
+    for (dir of LONG_DIRECTION_LIST){
+        var n = NeighborAt(nbr, SOUTH, dir);
+        if (NeighborAt(nbr, SOUTH_EAST, dir).earth.height.get() <= 0) continue;
+        if (! PointAt(n.air.direction.get(), SOUTH, SOUTH_EAST, dir)) continue;
+        found_dir.push(dir);
+        found_pressure += n.air.pressure.get();
+    }
+
+    // Propagation.
+    if (found_dir.length == 1){
+        cell.air.direction.set(found_dir[0]);
+        cell.air.pressure.set(found_pressure);
+    } else {
+        cell.air.direction.set(CENTER);
+        cell.air.pressure.set(0);
+    }
 }
 
 function Water(){
@@ -145,84 +172,6 @@ function Water(){
 }
 
 function WaterUpdate(cell, nbr){
-
-    if (cell.water.level.get() > 0 && cell.water.direction.get() == CENTER){
-        // Treat still blocks differently
-        var cell_height = cell.earth.height.get() + cell.water.level.get();
-        var any_lower = false;
-        var n_greater = 0;
-        var level_change = cell.water.level.get();
-        for (dir of ALL_DIRECTION_LIST){
-            var n = NeighborAt(nbr, NORTH, dir);
-            var n_height = n.earth.height.get();
-            if (n.water.direction.get() == CENTER){
-                n_height += n.water.level.get();
-            }
-            if (cell_height > n_height){
-                any_lower = true;
-            }
-            if (cell_height < n_height &&
-                n.water.level.get() > level_change &&
-                n.water.direction.get() != CENTER &&
-                CompareDirection(n.water.direction.get(), RotateRight(dir, SOUTH)) < 3){
-                level_change = n.water.level.get();
-            }
-            if (cell_height < n_height &&
-                n.water.level.get() > cell.water.level.get() &&
-                n.water.direction.get() == CENTER){
-                n_greater += 1;
-            }
-
-        }
-
-        if (any_lower) level_change -= 1;
-        if (n_greater > 3) level_change += 1;
-        
-        if (level_change > WATER_MAX) level_change = WATER_MAX;
-        if (level_change < 0) level_change = 0;
-        cell.water.level.set(level_change);
-        return;
-    }
-
-    var found_dir = [];
-    var gradient_dir = []
-    var sum_levels = 0;
-    var cell_height = cell.earth.height.get();
-    for (dir of ALL_DIRECTION_LIST){
-        var n = NeighborAt(nbr, SOUTH, dir);
-        var n_height = n.earth.height.get();
-        if (n.water.direction.get() == CENTER){
-            n_height += n.water.level.get();
-        }
-        if (cell_height < n_height){
-            gradient_dir.push(dir);
-        }
-        if (cell_height > n_height){
-            gradient_dir.push(RotateRight(dir, SOUTH));
-        }
-        if (n.water.level.get() <= 0) continue;
-        if (n.water.level.get() + n.earth.height.get() <= cell.earth.height.get()) continue;
-        var dir_err = CompareDirection(n.water.direction.get(), dir);
-        if (dir_err > 2) continue;
-        var n_level = (
-            n.water.level.get() -
-            (IsLongDirection(dir) ? 2: 1));
-        if (n_level > sum_levels){
-            sum_levels = n_level;
-        }
-        found_dir.push(dir);
-    }
-    if (sum_levels > WATER_MAX) sum_levels = WATER_MAX;
-    var new_dir = AverageDirections(found_dir);
-    if (gradient_dir.length > 0 && AverageDirections(gradient_dir) == CENTER) new_dir = CENTER;
-    if (new_dir != CENTER){
-        n = NeighborAt(nbr, NORTH, new_dir);
-        n_height = n.earth.height.get();
-        if (n.water.direction.get() == CENTER) n_height += n.water.level.get();
-        if (n_height > cell.earth.height.get()) new_dir = CENTER;
-    }
-    cell.water.level.set(sum_levels);
-    cell.water.direction.set(new_dir);
 }
 
 function Fire(){
@@ -266,30 +215,6 @@ function Earth(){
 }
 
 function EarthUpdate(cell, nbr){
-    var new_height = cell.earth.height.get();
-    for (dir of ALL_DIRECTION_LIST){
-        var n = NeighborAt(nbr, SOUTH, dir);
-        if (n.earth.height.get() <= 0) continue;
-        if (n.earth.height.get() + n.air.pressure.get() < cell.earth.height.get()) continue;
-        if (n.air.pressure.get() > 0 && n.air.direction.get() != CENTER){
-            var dir_err = CompareDirection(n.air.direction.get(), dir);
-            if (dir_err > 0) continue;
-            new_height ++;
-        }
-    }
-
-    // If the cell in front can accept the block.
-    if (new_height > 0){
-        if (cell.air.pressure.get() > 0 && cell.air.direction.get() != CENTER){
-        var n = NeighborAt(nbr, NORTH, cell.air.direction.get());
-            if (cell.earth.height.get() + cell.air.pressure.get() >= n.earth.height.get()){
-                new_height --;
-            }
-        }
-    }
-    
-    if (new_height > 16) new_height = 16;
-    cell.earth.height.set(new_height);
 }
 
 function Element(){
@@ -316,4 +241,9 @@ function ElementUpdate(cell, nbr){
     WaterUpdate(cell.element, element_nbr);
     AirUpdate(cell.element, element_nbr);
     EarthUpdate(cell.element, element_nbr);
+    if (!cell.block.conductive.get() && cell.block.present.get()){
+        cell.element.earth.height.set(0);
+        cell.element.air.pressure.set(0);
+        cell.element.water.level.set(0);
+    }
 }

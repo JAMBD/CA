@@ -17,6 +17,9 @@ function RotateRight(direction, n_turns){
     if (direction == CENTER){
         return CENTER;
     }
+    if (n_turns == CENTER){
+        return direction;
+    }
     return (Number(direction) + Number(n_turns)) % Number(8);
 }
 
@@ -25,7 +28,7 @@ function NeighborAt(nbr, idx, direction){
     // 7 0 1
     // 6 ^ 2
     // 5 4 3
-    return nbr[(Number(idx) + Number(direction)) % Number(8)];
+    return nbr[RotateRight(idx, direction)];
 }
 
 function ParameterNeighbors(nbr, param){
@@ -34,6 +37,59 @@ function ParameterNeighbors(nbr, param){
         p_nbr.push(i[param]);
     }
     return p_nbr;
+}
+
+function PointAt(nbr_dir, nbr_pos, cell_pos, dir){
+    // Checks to see is the neighbour at nbr_idx with direction
+    // nbr_pos is pointing at a cell with cell_pos.
+    var l_nbr_dir = nbr_dir;
+    var l_nbr_pos = RotateRight(nbr_pos, dir);
+    var l_cell_pos = RotateRight(cell_pos, dir);
+
+    var x_loc = 0.0;
+    var y_loc = 0.0;
+
+    if (l_nbr_pos == NORTH || l_nbr_pos == NORTH_WEST || l_nbr_pos == NORTH_EAST){
+        y_loc -= 1.0;
+    }
+    if (l_nbr_pos == SOUTH || l_nbr_pos == SOUTH_WEST || l_nbr_pos == SOUTH_EAST){
+        y_loc += 1.0;
+    }
+    if (l_nbr_pos == EAST || l_nbr_pos == NORTH_EAST || l_nbr_pos == SOUTH_EAST){
+        x_loc += 1.0;
+    }
+    if (l_nbr_pos == WEST || l_nbr_pos == NORTH_WEST || l_nbr_pos == SOUTH_WEST){
+        x_loc -= 1.0;
+    }
+
+    if (l_nbr_dir == NORTH || l_nbr_dir == NORTH_WEST || l_nbr_dir == NORTH_EAST){
+        y_loc -= 1.0;
+    }
+    if (l_nbr_dir == SOUTH || l_nbr_dir == SOUTH_WEST || l_nbr_dir == SOUTH_EAST){
+        y_loc += 1.0;
+    }
+    if (l_nbr_dir == EAST || l_nbr_dir == NORTH_EAST || l_nbr_dir == SOUTH_EAST){
+        x_loc += 1.0;
+    }
+    if (l_nbr_dir == WEST || l_nbr_dir == NORTH_WEST || l_nbr_dir == SOUTH_WEST){
+        x_loc -= 1.0;
+    }
+
+    if (l_cell_pos == NORTH || l_cell_pos == NORTH_WEST || l_cell_pos == NORTH_EAST){
+        y_loc += 1.0;
+    }
+    if (l_cell_pos == SOUTH || l_cell_pos == SOUTH_WEST || l_cell_pos == SOUTH_EAST){
+        y_loc -= 1.0;
+    }
+    if (l_cell_pos == EAST || l_cell_pos == NORTH_EAST || l_cell_pos == SOUTH_EAST){
+        x_loc -= 1.0;
+    }
+    if (l_cell_pos == WEST || l_cell_pos == NORTH_WEST || l_cell_pos == SOUTH_WEST){
+        x_loc += 1.0;
+    }
+
+    return x_loc == 0 && y_loc == 0;
+
 }
 
 function AverageDirections (directions_list){
